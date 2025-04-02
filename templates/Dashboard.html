@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        nav {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            position: fixed;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+        }
+
+        nav ul li a {
+            color: #00ff88;
+            text-decoration: none;
+            padding: 15px 30px;
+            margin: 0 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        nav ul li a:hover {
+            background: #00ff88;
+            color: #1a1a1a;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        .video-container {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .video-overlay h1 {
+            font-size: 5em;
+            text-shadow: 0 0 20px rgba(0, 254, 153, 0.5);
+            animation: glow 2s infinite alternate;
+            background: linear-gradient(45deg, #d5c6c6, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            padding: 50px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        
+        .parking-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .parking-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+            background: linear-gradient(45deg, rgba(0, 255, 136, 0.1), rgba(255, 255, 255, 0.15));
+        }
+
+        .parking-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .parking-card:hover::before {
+            left: 100%;
+        }
+
+        .parking-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #00ff88;
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+
+        .parking-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .car-animation {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            font-size: 40px;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .parking-card:hover .car-animation {
+            opacity: 1;
+            bottom: 20px;
+            left: 500px;
+            transform: scale(0.8);
+        }
+
+        .parking-spot {
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .parking-card:hover .parking-spot {
+            bottom: -20px;
+            right: -20px;
+            transform: rotate(0deg);
+        }
+
+        .parking-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #00ff88;
+            transform: scaleX(0);
+            transition: transform 0.5s ease 0.3s;
+        }
+
+        .parking-card:hover .parking-line {
+            transform: scaleX(1);
+        }
+
+        .parking-card h2 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .parking-card p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+        </ul>
+    </nav>
+
+    <div class="video-container">
+        <video autoplay muted loop>
+            <source src="Solaris_video.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay">
+            <h1>Maruti Solaris</h1>
+        </div>
+    </div>
+
+    <div class="cards-container">
+        <div class="parking-card" id="basement-card">
+            <div class="car-animation">🚗</div>
+            <div class="parking-spot"></div>
+            <div class="parking-line"></div>
+            <h2>Basement Parking</h2>
+            <p>Available Spaces: <span id="basement-available">15</span>/20</p>
+            <p>Current Occupancy: <span id="basement-occupancy">75</span>%</p>
+            <p>Status: <span id="basement-status">OPEN</span></p>
+        </div>
+  
+        <div class="parking-card" id="firstfloor-card">
+            <div class="car-animation">🚗</div>
+            <div class="parking-spot"></div>
+            <div class="parking-line"></div>
+            <h2>First Floor Parking</h2>
+            <p>Available Spaces: <span id="firstfloor-available">10</span>/20</p>
+            <p>Current Occupancy: <span id="firstfloor-occupancy">50</span>%</p>
+            <p>Status: <span id="firstfloor-status">OPEN</span></p>
+        </div>
+    </div>
+  
+    
+        <script>
+            // Click handlers to navigate to detailed pages
+           document.getElementById('basement-card').addEventListener('click', () => {
+                window.location.href = 'Basement.html';
+            });
+        
+            document.getElementById('firstfloor-card').addEventListener('click', () => {
+                window.location.href = 'First_Floor.html';
+            });
+        
+            // Function to fetch and parse data from a given file
+            async function fetchParkingData(fileName) {
+                try {
+                    const response = await fetch(fileName);
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+        
+                    return {
+                        available: parseInt(doc.getElementById('available-count').textContent.trim()),
+                        occupied: parseInt(doc.getElementById('occupied-count').textContent.trim()),
+                        outService: parseInt(doc.getElementById('out-service-count').textContent.trim())
+                    };
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    return null;
+                }
+            }
+        
+            // Update the dashboard cards with real time data
+            async function updateParkingData() {
+                // Update Basement data
+                const basementData = await fetchParkingData('Basement.html');
+                if (basementData) {
+                    const total = 20;
+                    document.getElementById('basement-available').textContent = basementData.available;
+                    document.getElementById('basement-occupancy').textContent =
+                        Math.round((basementData.occupied / total) * 100);
+                    document.getElementById('basement-status').textContent =
+                        basementData.outService > 5 ? 'LIMITED' : 'OPEN';
+                }
+        
+                // Update First Floor data
+                const firstFloorData = await fetchParkingData('First_Floor.html');
+                if (firstFloorData) {
+                    const total = 20;
+                    document.getElementById('firstfloor-available').textContent = firstFloorData.available;
+                    document.getElementById('firstfloor-occupancy').textContent =
+                        Math.round((firstFloorData.occupied / total) * 100);
+                    document.getElementById('firstfloor-status').textContent =
+                        firstFloorData.outService > 3 ? 'LIMITED' : 'OPEN';
+                }
+            }
+        
+            // Update data every 3 seconds
+            setInterval(updateParkingData, 1000);
+            // Initial update when page loads
+            updateParkingData();
+
+
+// Parking data model with correct initial values
+/*const parkingData = {
+            basement: {
+                total: 20,  // Matches displayed total
+                available: 15,
+                occupied: 5,  // 15 available + 5 occupied = 20 total
+                outService: 0
+            },
+            firstFloor: {
+                total: 20,  // Matches displayed total
+                available: 15,
+                occupied: 5,  // 15 available + 5 occupied = 20 total
+                outService: 0
+            }
+        };
+
+        // Update display function
+        function updateParkingData() {
+            // Update basement
+            document.getElementById('basement-available').textContent = parkingData.basement.available;
+            document.getElementById('basement-occupancy').textContent = 
+                Math.round(parkingData.basement.occupied / parkingData.basement.total) * 100;
+            document.getElementById('basement-status').textContent = 
+                parkingData.basement.outService > 5 ? 'LIMITED' : 'OPEN';
+
+            // Update first floor
+            document.getElementById('firstfloor-available').textContent = parkingData.firstFloor.available;
+            document.getElementById('firstfloor-occupancy').textContent = 
+                Math.round(parkingData.firstFloor.occupied / parkingData.firstFloor.total) * 100;
+            document.getElementById('firstfloor-status').textContent = 
+                parkingData.firstFloor.outService > 5 ? 'LIMITED' : 'OPEN';
+        }
+
+        // Simulate real-time changes
+        setInterval(() => {
+            // Update basement data
+            parkingData.basement.available += Math.floor(Math.random() * 3 - 1);
+            parkingData.basement.occupied += Math.floor(Math.random() * 3 - 1);
+            parkingData.basement.outService += Math.floor(Math.random() * 2 - 0.5);
+
+            // Update first floor data
+            parkingData.firstFloor.available += Math.floor(Math.random() * 3 - 1);
+            parkingData.firstFloor.occupied += Math.floor(Math.random() * 3 - 1);
+            parkingData.firstFloor.outService += Math.floor(Math.random() * 2 - 0.5);
+
+            // Ensure values stay within limits
+            ['basement', 'firstFloor'].forEach(floor => {
+                const data = parkingData[floor];
+                
+                data.available = Math.max(0, Math.min(
+                    data.total - data.occupied - data.outService,
+                    data.available
+                ));
+                
+                data.occupied = Math.max(0, Math.min(
+                    data.total - data.available - data.outService,
+                    data.occupied
+                ));
+                
+                data.outService = Math.max(0, Math.min(
+                    data.total - data.available - data.occupied,
+                    data.outService
+                ));
+            });
+
+            updateParkingData();
+        }, 3000);
+
+        // Initial update
+        updateParkingData();*/
+        </script>
+
+</body>
+</html>
